@@ -3,290 +3,309 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MINO RPG Adventure</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>MINO RPG WORLD</title>
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;padding:20px;
-  background:linear-gradient(135deg,#101827,#24152f);
-  color:#fff;font-family:Arial,sans-serif;
-  text-align:center;min-height:100vh;
-}
-.game{
-  max-width:520px;margin:25px auto;
-  padding:24px;background:#202b3d;
-  border:2px solid #d6a84b;border-radius:18px;
-  box-shadow:0 10px 35px #0008;
-}
-h1{color:#f4c65e;margin-top:5px}
-h2{color:#ffcf70}
-.stats,.enemy{
-  background:#111a29;padding:15px;
-  border-radius:12px;margin:12px 0;
-}
-.statline{
-  display:flex;justify-content:space-between;
-  margin:9px 0;gap:10px;
-}
-.bar{
-  height:13px;background:#4b2630;
-  border-radius:10px;overflow:hidden;margin-top:7px;
-}
-.fill{
-  height:100%;width:100%;
-  background:#36c878;transition:width .25s;
-}
-.enemy .fill{background:#e34c4c}
-button{
-  border:0;border-radius:10px;
-  padding:13px 18px;margin:6px;
-  font-size:16px;font-weight:bold;
-  cursor:pointer;color:white;
-  background:#b77b24;
-}
-button:disabled{opacity:.4;cursor:not-allowed}
-.attack{background:#c03939}
-.heal{background:#218c59}
-.new{background:#596579}
-#message{
-  min-height:55px;padding:12px;
-  color:#f4d27c;line-height:1.5;
-}
-.small{color:#b9c4d4;font-size:13px}
+body{margin:0;background:#101827;color:white;font-family:Arial;overflow:hidden}
+header{height:48px;background:#17243a;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+header b{color:#ffc857}
+#game{display:block;width:100vw;height:calc(100dvh - 48px);image-rendering:pixelated;touch-action:none}
+.hud{position:fixed;top:58px;left:10px;background:#101827dd;padding:10px;border:1px solid #65718b;border-radius:10px;font-size:12px;pointer-events:none}
+.bar{height:8px;width:125px;background:#333;margin-top:5px;border-radius:5px;overflow:hidden}
+#hp{height:100%;width:100%;background:#36d47c}
+.controls{position:fixed;bottom:20px;left:15px;display:grid;grid-template-columns:48px 48px 48px;grid-template-rows:48px 48px 48px;gap:3px}
+.controls button,.actions button{background:#263954;color:white;border:2px solid #64748b;border-radius:12px;font-size:20px;touch-action:none}
+.controls button{opacity:.85}
+.up{grid-column:2}.left{grid-column:1;grid-row:2}.right{grid-column:3;grid-row:2}.down{grid-column:2;grid-row:3}
+.actions{position:fixed;bottom:35px;right:15px;display:flex;gap:10px}
+.actions button{width:65px;height:65px;background:#8b432e;font-size:13px;font-weight:bold}
+#talk{position:fixed;bottom:115px;left:50%;transform:translateX(-50%);background:#17243a;border:1px solid #ffc857;padding:10px 15px;border-radius:12px;display:none;max-width:85%;text-align:center;font-size:13px}
+#notice{position:fixed;top:65px;right:10px;background:#17243a;padding:9px;border-radius:9px;font-size:12px}
+@media(min-width:800px){.controls,.actions{opacity:.55}}
 </style>
 </head>
 <body>
+<header><b>⚔ MINO RPG WORLD</b><span id="location">Green Valley</span><span>⭐ LV <b id="level">1</b></span></header>
+<canvas id="game"></canvas>
 
-<div class="game">
-  <h1>⚔️ MINO RPG Adventure</h1>
-  <p class="small">Your adventure is automatically saved.</p>
+<div class="hud">
+ ❤️ <span id="health">100</span>/100
+ <div class="bar"><div id="hp"></div></div>
+ ⚔ Attack: <span id="attack">20</span><br>
+ 🪙 Gold: <span id="gold">30</span><br>
+ XP: <span id="xp">0</span>/100
+</div>
 
-  <div class="stats">
-    <h2>Kingdom Player</h2>
-    <div class="statline">
-      <span>❤️ Health</span><strong id="playerHP">100</strong>
-    </div>
-    <div class="bar"><div class="fill" id="playerBar"></div></div>
-    <div class="statline">
-      <span>⭐ Level</span><strong id="level">1</strong>
-    </div>
-    <div class="statline">
-      <span>✨ XP</span><strong id="xp">0</strong>
-    </div>
-  </div>
+<div id="notice">Explore the world!</div>
+<div id="talk"></div>
 
-  <div class="enemy">
-    <h2 id="enemyName">Dark Knight</h2>
-    <div class="statline">
-      <span>Enemy Health</span><strong id="enemyHP">60</strong>
-    </div>
-    <div class="bar"><div class="fill" id="enemyBar"></div></div>
-  </div>
-
-  <div id="message">Welcome! Prepare for battle.</div>
-
-  <button id="startBtn" onclick="startGame()">Start / Continue</button>
-  <br>
-  <button class="attack" id="attackBtn" onclick="attack()">⚔️ Attack</button>
-  <button class="heal" id="healBtn" onclick="heal()">❤️ Heal</button>
-  <br>
-  <button class="new" onclick="newGame()">New Game</button>
-
-  <p class="small" id="saveStatus">Checking saved progress...</p>
+<div class="controls">
+<button class="up" data-key="up">▲</button>
+<button class="left" data-key="left">◀</button>
+<button class="right" data-key="right">▶</button>
+<button class="down" data-key="down">▼</button>
+</div>
+<div class="actions">
+<button id="attackBtn">⚔<br>ATTACK</button>
+<button id="talkBtn">💬<br>TALK</button>
 </div>
 
 <script>
-const enemies = [
-  {name:"Dark Knight", hp:60, damage:10, xp:60},
-  {name:"Shadow Beast", hp:90, damage:15, xp:90},
-  {name:"Dark Lord", hp:150, damage:20, xp:150},
-    {name:"Night Warden", hp:200, damage:25, xp:200}
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+const W=1800,H=1400,T=48;
+
+function resize(){
+ canvas.width=innerWidth*devicePixelRatio;
+ canvas.height=(innerHeight-48)*devicePixelRatio;
+ ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+resize();addEventListener("resize",resize);
+
+const player={x:350,y:350,hp:100,max:100,level:1,xp:0,gold:30,weapon:20};
+let keys={},camera={x:0,y:0},messageTimer=0;
+let message="Welcome to Green Valley!";
+let worldEnemies=[
+ {x:650,y:350,hp:35,max:35,name:"Forest Slime",emoji:"🟢",damage:7},
+ {x:950,y:650,hp:55,max:55,name:"Wild Goblin",emoji:"👹",damage:11},
+ {x:1400,y:450,hp:90,max:90,name:"Dark Knight",emoji:"💀",damage:16},
+ {x:1400,y:1100,hp:180,max:180,name:"Shadow Lord",emoji:"👑",damage:23}
+];
+const villagers=[
+ {x:300,y:550,name:"Elder",emoji:"🧙",talk:"Welcome, Mino! Defeat the monsters and protect our village."},
+ {x:480,y:750,name:"Merchant",emoji:"🧔",talk:"I sell powerful equipment. Bring me 50 gold for a stronger sword!"},
+ {x:1050,y:1050,name:"Guard",emoji:"🛡️",talk:"The Shadow Lord waits in the southern castle. Be prepared!"}
+];
+const trees=[];
+for(let i=0;i<90;i++){
+ let x=60+Math.random()*1650,y=60+Math.random()*1280;
+ if(Math.hypot(x-350,y-350)>120)trees.push({x,y});
+}
+const houses=[
+ {x:180,y:470,w:115,h:95},
+ {x:390,y:650,w:115,h:95},
+ {x:250,y:880,w:130,h:100}
 ];
 
-const SAVE_KEY = "mino_rpg_save_v3";
-
-function freshState(){
-  return {
-    playerHP:100,
-    maxHP:100,
-    level:1,
-    xp:0,
-    stage:0,
-    enemyHP:60,
-    started:false,
-    finished:false,
-    gameOver:false
-  };
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function text(t,x,y,size=14,color="white"){
+ ctx.fillStyle=color;ctx.font=`bold ${size}px Arial`;ctx.fillText(t,x,y);
 }
 
-let state = loadGame();
+function drawWorld(){
+ rect(0,0,W,H,"#477d43");
 
-function loadGame(){
-  try{
-    const saved = localStorage.getItem(SAVE_KEY);
-    if(!saved) return freshState();
-
-    const data = JSON.parse(saved);
-    const base = freshState();
-    const merged = {...base,...data};
-
-    if(
-      !Number.isFinite(merged.playerHP) ||
-      !Number.isFinite(merged.enemyHP) ||
-      !Number.isInteger(merged.stage) ||
-      merged.stage < 0 || merged.stage >= enemies.length
-    ){
-      return freshState();
-    }
-    return merged;
-  }catch(error){
-    return freshState();
+ // Grass pattern
+ for(let y=0;y<H;y+=T){
+  for(let x=0;x<W;x+=T){
+   if((x/T+y/T)%3===0)rect(x+8,y+9,4,4,"#57934c");
   }
-}
+ }
 
-function saveGame(){
-  try{
-    localStorage.setItem(SAVE_KEY,JSON.stringify(state));
-    document.getElementById("saveStatus").textContent =
-      "✓ Progress saved automatically";
-  }catch(error){
-    document.getElementById("saveStatus").textContent =
-      "Save unavailable in this browser";
+ // Roads
+ rect(0,495,650,75,"#b99a65");
+ rect(500,495,65,550,"#b99a65");
+ rect(500,1000,1000,65,"#b99a65");
+ rect(1000,500,65,530,"#b99a65");
+
+ // River
+ rect(1170,0,100,400,"#328ab5");
+ rect(1270,300,530,80,"#328ab5");
+
+ // Castle
+ rect(1350,1000,330,250,"#646b7c");
+ rect(1390,950,70,100,"#7d879b");
+ rect(1570,950,70,100,"#7d879b");
+ rect(1460,1080,100,170,"#343b51");
+ text("DARK CASTLE",1400,1270,19,"#ffe08a");
+
+ // Houses
+ houses.forEach(h=>{
+  rect(h.x,h.y,h.w,h.h,"#bd8651");
+  rect(h.x-10,h.y-18,h.w+20,28,"#873c36");
+  rect(h.x+45,h.y+45,27,50,"#51332b");
+  rect(h.x+12,h.y+32,22,22,"#a8dcdf");
+ });
+
+ // Trees
+ trees.forEach(t=>{
+  rect(t.x-8,t.y+12,16,25,"#68442b");
+  ctx.fillStyle="#245d37";ctx.beginPath();
+  ctx.arc(t.x,t.y,25,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#39844a";ctx.beginPath();
+  ctx.arc(t.x-8,t.y-8,15,0,Math.PI*2);ctx.fill();
+ });
+
+ // NPCs
+ villagers.forEach(v=>drawCharacter(v.x,v.y,v.emoji,"#e9c46a",v.name));
+
+ // Enemies
+ worldEnemies.forEach(e=>{
+  if(e.hp>0){
+   drawCharacter(e.x,e.y,e.emoji,"#a63b4d",e.name);
+   rect(e.x-20,e.y-35,40,5,"#333");
+   rect(e.x-20,e.y-35,40*e.hp/e.max,5,"#e54c62");
   }
+ });
 }
 
-function currentEnemy(){
-  return enemies[state.stage];
+function drawCharacter(x,y,emoji,color,name){
+ rect(x-11,y+8,22,9,"#26332a");
+ ctx.font="30px Arial";ctx.textAlign="center";
+ ctx.fillText(emoji,x,y+5);
+ ctx.textAlign="left";
+ text(name,x-25,y-25,10,"#fff3c4");
 }
 
-function updateScreen(){
-  document.getElementById("playerHP").textContent =
-    state.playerHP + " / " + state.maxHP;
-  document.getElementById("playerBar").style.width =
-    Math.max(0,state.playerHP/state.maxHP*100) + "%";
-
-  document.getElementById("level").textContent = state.level;
-  document.getElementById("xp").textContent = state.xp;
-
-  if(state.finished){
-    document.getElementById("enemyName").textContent = "Victory!";
-    document.getElementById("enemyHP").textContent = "0";
-    document.getElementById("enemyBar").style.width = "0%";
-  }else{
-    const enemy = currentEnemy();
-    document.getElementById("enemyName").textContent = enemy.name;
-    document.getElementById("enemyHP").textContent =
-      state.enemyHP + " / " + enemy.hp;
-    document.getElementById("enemyBar").style.width =
-      Math.max(0,state.enemyHP/enemy.hp*100) + "%";
-  }
-
-  const canFight = state.started && !state.finished && !state.gameOver;
-  document.getElementById("attackBtn").disabled = !canFight;
-  document.getElementById("healBtn").disabled =
-    !canFight || state.playerHP >= state.maxHP;
-  document.getElementById("startBtn").textContent =
-    state.started ? "Continue" : "Start / Continue";
+function drawPlayer(){
+ // Shadow
+ rect(player.x-12,player.y+12,24,8,"#243329");
+ // Body
+ rect(player.x-9,player.y-18,18,25,"#315eae");
+ rect(player.x-8,player.y-29,16,13,"#e5b58b");
+ rect(player.x-11,player.y-32,22,7,"#b8c7d9");
+ rect(player.x-7,player.y+7,6,12,"#303c58");
+ rect(player.x+2,player.y+7,6,12,"#303c58");
+ rect(player.x+10,player.y-10,5,18,"#c6cbd6");
 }
 
-function message(text){
-  document.getElementById("message").textContent = text;
+function render(){
+ const vw=innerWidth,vh=innerHeight-48;
+ camera.x=Math.max(0,Math.min(W-vw,player.x-vw/2));
+ camera.y=Math.max(0,Math.min(H-vh,player.y-vh/2));
+ ctx.clearRect(0,0,vw,vh);
+ ctx.save();ctx.translate(-camera.x,-camera.y);
+ drawWorld();drawPlayer();
+ ctx.restore();
+ requestAnimationFrame(render);
 }
 
-function startGame(){
-  if(state.finished){
-    message("You have already completed the adventure. Start a New Game to play again.");
-    return;
-  }
-  if(state.gameOver){
-    message("Your hero has fallen. Start a New Game to try again.");
-    return;
-  }
-  state.started = true;
-  saveGame();
-  updateScreen();
-  message("Battle resumed! Your progress is safe.");
+function move(){
+ let dx=0,dy=0;
+ if(keys.left)dx--;
+ if(keys.right)dx++;
+ if(keys.up)dy--;
+ if(keys.down)dy++;
+ if(dx||dy){
+  const length=Math.hypot(dx,dy);
+  let nx=player.x+dx/length*3;
+  let ny=player.y+dy/length*3;
+  if(nx>25&&nx<W-25)player.x=nx;
+  if(ny>25&&ny<H-25)player.y=ny;
+ }
+ checkZone();
+}
+function checkZone(){
+ let zone="Green Valley";
+ if(player.x>1100)zone="Riverlands";
+ if(player.y>900)zone="Dark Castle";
+ if(player.x<250&&player.y<250)zone="Forest Edge";
+ document.getElementById("location").textContent=zone;
+}
+
+function nearest(list){
+ return list.filter(o=>o.hp===undefined||o.hp>0)
+ .map(o=>({...o,d:Math.hypot(player.x-o.x,player.y-o.y)}))
+ .sort((a,b)=>a.d-b.d)[0];
 }
 
 function attack(){
-  if(!state.started || state.finished || state.gameOver) return;
-
-  const enemy = currentEnemy();
-  const damage = 20 + (state.level - 1) * 5;
-  state.enemyHP = Math.max(0,state.enemyHP-damage);
-
-  if(state.enemyHP <= 0){
-    state.xp += enemy.xp;
-
-    while(state.xp >= 100){
-      state.xp -= 100;
-      state.level++;
-      state.maxHP += 20;
-      state.playerHP = Math.min(state.maxHP,state.playerHP+30);
-    }
-
-    if(state.stage === enemies.length-1){
-      state.finished = true;
-      message("🏆 Defeated Night Warden! You Win! Progress saved.");
-      const defeated = enemy.name;
-      state.stage++;
-      state.enemyHP = currentEnemy().hp;
-      message("Victory! " + defeated + " defeated. Next enemy: " + currentEnemy().name);
-    }
-  }else{
-    state.playerHP = Math.max(0,state.playerHP-enemy.damage);
-
-    if(state.playerHP <= 0){
-      state.gameOver = true;
-      message("You have been defeated! Your progress is saved.");
-    }else{
-      message("You dealt " + damage + " damage. " +
-        enemy.name + " attacked for " + enemy.damage + " damage.");
-    }
+ let e=nearest(worldEnemies);
+ if(!e||e.d>75){notify("No enemy nearby!");return;}
+ let target=worldEnemies.find(x=>x.x===e.x&&x.y===e.y);
+ target.hp=Math.max(0,target.hp-player.weapon);
+ notify("⚔ You attacked "+target.name+"!");
+ if(target.hp===0){
+  player.xp+=35;player.gold+=15;
+  notify("🏆 Monster defeated! +35 XP and 15 gold!");
+  if(player.xp>=100){
+   player.xp-=100;player.level++;
+   player.max+=15;player.hp=player.max;
+   player.weapon+=5;
+   notify("⭐ LEVEL UP! New attack power!");
   }
-
-  saveGame();
-  updateScreen();
-}
-
-function heal(){
-  if(!state.started || state.finished || state.gameOver) return;
-
-  if(state.playerHP >= state.maxHP){
-    message("Your health is already full.");
-    return;
+  updateHUD();save();
+ }else{
+  player.hp=Math.max(0,player.hp-target.damage);
+  if(player.hp===0){
+   player.hp=1;
+   notify("💫 You are exhausted! Find the village elder.");
   }
-
-  const restored = Math.min(20,state.maxHP-state.playerHP);
-  state.playerHP += restored;
-  saveGame();
-  updateScreen();
-  message("❤️ You restored " + restored + " health. Progress saved.");
+  updateHUD();save();
+ }
 }
 
-function newGame(){
-  if(!confirm("Start a completely new game? This will erase your saved progress.")){
-    return;
-  }
-  state = freshState();
-  saveGame();
-  updateScreen();
-  message("Welcome, hero! Your new adventure is ready.");
+function talk(){
+ let v=nearest(villagers);
+ if(!v||v.d>90){notify("Come closer to a character.");return;}
+ let npc=villagers.find(x=>x.x===v.x&&x.y===v.y);
+ let msg=npc.talk;
+ if(npc.name==="Merchant"){
+  if(player.gold>=50){
+   msg="You bought a stronger sword! Attack +10.";
+   player.gold-=50;player.weapon+=10;
+   updateHUD();save();
+  }else msg="You need 50 gold for my sword. Hunt monsters!";
+ }
+ document.getElementById("talk").textContent=npc.name+": "+msg;
+ document.getElementById("talk").style.display="block";
+ setTimeout(()=>document.getElementById("talk").style.display="none",4500);
 }
 
-updateScreen();
-
-if(state.finished){
-  message("🏆 You have already won! Your completed game is saved.");
-}else if(state.gameOver){
-  message("Your saved game is over. Choose New Game to restart.");
-}else if(state.started){
-  message("Welcome back! Your previous battle has been restored.");
-}else{
-  message("Welcome! Press Start to begin your adventure.");
+function notify(s){
+ message=s;
+ document.getElementById("notice").textContent=s;
 }
+function updateHUD(){
+ document.getElementById("health").textContent=player.hp;
+ document.getElementById("hp").style.width=player.hp/player.max*100+"%";
+ document.getElementById("level").textContent=player.level;
+ document.getElementById("gold").textContent=player.gold;
+ document.getElementById("xp").textContent=player.xp;
+ document.getElementById("attack").textContent=player.weapon;
+}
+function save(){
+ localStorage.setItem("minoWorldSave",JSON.stringify({player,enemies:worldEnemies}));
+}
+function load(){
+ try{
+  let s=JSON.parse(localStorage.getItem("minoWorldSave"));
+  if(s){Object.assign(player,s.player);worldEnemies=s.enemies;}
+ }catch(e){}
+ updateHUD();
+}
+function loop(){
+ move();
+ setTimeout(loop,16);
+}
+
+document.addEventListener("keydown",e=>{
+ const k=e.key.toLowerCase();
+ if(["arrowup","w"].includes(k))keys.up=true;
+ if(["arrowdown","s"].includes(k))keys.down=true;
+ if(["arrowleft","a"].includes(k))keys.left=true;
+ if(["arrowright","d"].includes(k))keys.right=true;
+ if(k===" "||k==="j")attack();
+ if(k==="e")talk();
+});
+document.addEventListener("keyup",e=>{
+ const k=e.key.toLowerCase();
+ if(["arrowup","w"].includes(k))keys.up=false;
+ if(["arrowdown","s"].includes(k))keys.down=false;
+ if(["arrowleft","a"].includes(k))keys.left=false;
+ if(["arrowright","d"].includes(k))keys.right=false;
+});
+document.querySelectorAll("[data-key]").forEach(btn=>{
+ const k=btn.dataset.key;
+ btn.addEventListener("pointerdown",e=>{e.preventDefault();keys[k]=true;});
+ ["pointerup","pointerleave","pointercancel"].forEach(ev=>
+ btn.addEventListener(ev,()=>keys[k]=false));
+});
+document.getElementById("attackBtn").onclick=attack;
+document.getElementById("talkBtn").onclick=talk;
+
+load();render();loop();
 </script>
-
 </body>
 </html>
