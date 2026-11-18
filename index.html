@@ -1,56 +1,248 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MINO RPG</title>
+<title>MINO RPG ADVENTURE</title>
 <style>
+* { box-sizing: border-box; }
+
 body {
     background: #111827;
     color: white;
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     text-align: center;
-    padding: 25px;
+    padding: 20px;
 }
+
+.container {
+    max-width: 550px;
+    margin: auto;
+    background: #1f2937;
+    padding: 22px;
+    border-radius: 16px;
+    border: 2px solid #374151;
+}
+
 h1 { color: orange; }
+
+h2 { color: #facc15; }
+
+.stats {
+    background: #111827;
+    padding: 12px;
+    border-radius: 10px;
+    margin: 12px 0;
+}
+
+.bar {
+    background: #374151;
+    height: 15px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 8px 0 14px;
+}
+
+.fill {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s;
+}
+
+.player-fill { background: #22c55e; }
+.enemy-fill { background: #ef4444; }
+
 button {
     background: orange;
-    padding: 15px 25px;
+    color: #111827;
     border: none;
+    padding: 13px 20px;
+    margin: 7px;
     border-radius: 10px;
-    margin: 10px;
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#message {
+    min-height: 48px;
+    color: #facc15;
+    font-weight: bold;
+    margin: 18px 0;
+}
+
+.small {
+    color: #9ca3af;
+    font-size: 14px;
 }
 </style>
 </head>
+
 <body>
-<h1>MINO RPG ADVENTURE</h1>
-<h2 id="enemy">Dark Knight</h2>
-<p>Player Health: <span id="health">100</span></p>
-<p>Enemy Health: <span id="enemyHealth">100</span></p>
-<p id="message">Welcome Warrior!</p>
-<button onclick="attack()">ATTACK ⚔️</button>
-<button onclick="heal()">HEAL ❤️</button>
+<div class="container">
+
+<h1>⚔️ MINO RPG ADVENTURE</h1>
+<p class="small">Fight your way through the Dark Kingdom!</p>
+
+<div class="stats">
+    <h2>🛡️ Player</h2>
+    <p>Health: <span id="health">100</span> / 100</p>
+    <div class="bar">
+        <div id="playerBar" class="fill player-fill"></div>
+    </div>
+    <p>Level: <span id="level">1</span></p>
+    <p>XP: <span id="xp">0</span> / 100</p>
+</div>
+
+<div class="stats">
+    <h2 id="enemyName">Dark Knight</h2>
+    <p>Stage: <span id="stage">1</span> / 3</p>
+    <p>Enemy Health: <span id="enemyHealth">60</span></p>
+    <div class="bar">
+        <div id="enemyBar" class="fill enemy-fill"></div>
+    </div>
+</div>
+
+<p id="message">Welcome Warrior! Prepare for battle.</p>
+
+<button id="attackBtn" onclick="attack()">ATTACK ⚔️</button>
+<button id="healBtn" onclick="heal()">HEAL ❤️</button>
+<button onclick="restartGame()">RESTART 🔄</button>
+
+<p class="small">Defeat all enemies and become the hero of the kingdom!</p>
+
+</div>
+
 <script>
 let health = 100;
-let enemyHealth = 100;
-function attack() {
-    enemyHealth -= 20;
-    if (enemyHealth < 0) enemyHealth = 0;
+let maxHealth = 100;
+let xp = 0;
+let level = 1;
+let stage = 0;
+let gameOver = false;
+
+const enemies = [
+    { name: "Dark Knight", health: 60, damage: 10, xp: 40 },
+    { name: "Shadow Beast", health: 90, damage: 15, xp: 60 },
+    { name: "DARK LORD 👑", health: 150, damage: 20, xp: 100 }
+];
+
+let enemyHealth = enemies[0].health;
+
+function updateScreen() {
+    const enemy = enemies[stage];
+
+    document.getElementById("health").textContent = health;
+    document.getElementById("level").textContent = level;
+    document.getElementById("xp").textContent = xp;
+    document.getElementById("stage").textContent = stage + 1;
+    document.getElementById("enemyName").textContent = enemy.name;
     document.getElementById("enemyHealth").textContent = enemyHealth;
+
+    document.getElementById("playerBar").style.width =
+        (health / maxHealth * 100) + "%";
+
+    document.getElementById("enemyBar").style.width =
+        (enemyHealth / enemy.health * 100) + "%";
+
+    document.getElementById("attackBtn").disabled = gameOver;
+    document.getElementById("healBtn").disabled = gameOver;
+}
+
+function gainXP(amount) {
+    xp += amount;
+
+    while (xp >= 100) {
+        xp -= 100;
+        level++;
+        maxHealth += 20;
+        health = Math.min(maxHealth, health + 30);
+
+        document.getElementById("message").textContent =
+            "LEVEL UP! You reached level " + level + "!";
+    }
+}
+
+function attack() {
+    if (gameOver) return;
+
+    const enemy = enemies[stage];
+    const damage = 20 + (level - 1) * 5;
+
+    enemyHealth = Math.max(0, enemyHealth - damage);
+
     if (enemyHealth === 0) {
-        document.getElementById("message").textContent = "YOU WIN! 🏆";
+        gainXP(enemy.xp);
+
+        if (stage === enemies.length - 1) {
+            gameOver = true;
+            document.getElementById("message").textContent =
+                "🏆 YOU DEFEATED THE DARK LORD! YOU WIN!";
+        } else {
+            document.getElementById("message").textContent =
+                "Enemy defeated! +" + enemy.xp + " XP. Next stage!";
+            stage++;
+            enemyHealth = enemies[stage].health;
+        }
+
+        updateScreen();
         return;
     }
-    health -= 10;
-    document.getElementById("health").textContent = health;
-    document.getElementById("message").textContent = "The enemy attacks!";
+
+    health = Math.max(0, health - enemy.damage);
+
+    if (health === 0) {
+        gameOver = true;
+        document.getElementById("message").textContent =
+            "💀 GAME OVER! Press RESTART to try again.";
+    } else {
+        document.getElementById("message").textContent =
+            "You dealt " + damage + " damage! The enemy attacked for " +
+            enemy.damage + " damage.";
+    }
+
+    updateScreen();
 }
+
 function heal() {
-    health = Math.min(100, health + 20);
-    document.getElementById("health").textContent = health;
-    document.getElementById("message").textContent = "You healed!";
+    if (gameOver) return;
+
+    const oldHealth = health;
+    health = Math.min(maxHealth, health + 20);
+
+    if (health === oldHealth) {
+        document.getElementById("message").textContent =
+            "Your health is already full!";
+    } else {
+        document.getElementById("message").textContent =
+            "❤️ You restored " + (health - oldHealth) + " health!";
+    }
+
+    updateScreen();
 }
+
+function restartGame() {
+    health = 100;
+    maxHealth = 100;
+    xp = 0;
+    level = 1;
+    stage = 0;
+    gameOver = false;
+    enemyHealth = enemies[0].health;
+
+    document.getElementById("message").textContent =
+        "Welcome back, Warrior! The battle begins!";
+
+    updateScreen();
+}
+
+updateScreen();
 </script>
 </body>
 </html>
