@@ -1,311 +1,285 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>MINO RPG WORLD</title>
+<title>MINO RPG ADVENTURE</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101827;color:white;font-family:Arial;overflow:hidden}
-header{height:48px;background:#17243a;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
-header b{color:#ffc857}
-#game{display:block;width:100vw;height:calc(100dvh - 48px);image-rendering:pixelated;touch-action:none}
-.hud{position:fixed;top:58px;left:10px;background:#101827dd;padding:10px;border:1px solid #65718b;border-radius:10px;font-size:12px;pointer-events:none}
-.bar{height:8px;width:125px;background:#333;margin-top:5px;border-radius:5px;overflow:hidden}
-#hp{height:100%;width:100%;background:#36d47c}
-.controls{position:fixed;bottom:20px;left:15px;display:grid;grid-template-columns:48px 48px 48px;grid-template-rows:48px 48px 48px;gap:3px}
-.controls button,.actions button{background:#263954;color:white;border:2px solid #64748b;border-radius:12px;font-size:20px;touch-action:none}
-.controls button{opacity:.85}
-.up{grid-column:2}.left{grid-column:1;grid-row:2}.right{grid-column:3;grid-row:2}.down{grid-column:2;grid-row:3}
-.actions{position:fixed;bottom:35px;right:15px;display:flex;gap:10px}
-.actions button{width:65px;height:65px;background:#8b432e;font-size:13px;font-weight:bold}
-#talk{position:fixed;bottom:115px;left:50%;transform:translateX(-50%);background:#17243a;border:1px solid #ffc857;padding:10px 15px;border-radius:12px;display:none;max-width:85%;text-align:center;font-size:13px}
-#notice{position:fixed;top:65px;right:10px;background:#17243a;padding:9px;border-radius:9px;font-size:12px}
-@media(min-width:800px){.controls,.actions{opacity:.55}}
+body{
+ margin:0;background:#101820;color:white;
+ font-family:Arial,sans-serif;overflow:hidden;
+}
+#game{
+ display:block;width:100vw;height:100dvh;
+ background:#254c35;touch-action:none;
+}
+#hud{
+ position:absolute;top:12px;left:12px;right:12px;
+ display:flex;justify-content:space-between;gap:8px;
+ pointer-events:none;
+}
+.panel{
+ background:#101820df;border:1px solid #d5a94c;
+ border-radius:12px;padding:10px;font-size:13px;
+ box-shadow:0 4px 15px #0007;
+}
+.bar{height:9px;background:#444;border-radius:9px;margin-top:5px;overflow:hidden}
+.fill{height:100%;width:100%;background:#e34b4b}
+#xp{background:#e9b83e}
+#message{
+ position:absolute;bottom:125px;left:50%;
+ transform:translateX(-50%);
+ background:#101820e8;border:1px solid #d5a94c;
+ padding:10px 16px;border-radius:12px;
+ text-align:center;max-width:90%;font-size:13px;
+}
+#controls{
+ position:absolute;bottom:18px;left:15px;right:15px;
+ display:flex;justify-content:space-between;align-items:end;
+}
+.pad{display:grid;grid-template-columns:48px 48px 48px;gap:5px}
+.actions{display:flex;gap:9px;align-items:end}
+button{
+ border:1px solid #d5a94c;background:#172631;color:white;
+ border-radius:13px;font-weight:bold;
+ min-width:48px;height:48px;font-size:17px;
+ touch-action:none;
+}
+button:active{background:#a87525}
+.action{width:58px;height:58px;border-radius:50%;font-size:12px}
+#title{
+ position:absolute;top:80px;left:50%;transform:translateX(-50%);
+ color:#f3d17a;font-weight:bold;letter-spacing:3px;
+ text-shadow:0 3px 5px black;font-size:19px;
+ pointer-events:none;white-space:nowrap;
+}
 </style>
 </head>
 <body>
-<header><b>⚔ MINO RPG WORLD</b><span id="location">Green Valley</span><span>⭐ LV <b id="level">1</b></span></header>
 <canvas id="game"></canvas>
 
-<div class="hud">
- ❤️ <span id="health">100</span>/100
- <div class="bar"><div id="hp"></div></div>
- ⚔ Attack: <span id="attack">20</span><br>
- 🪙 Gold: <span id="gold">30</span><br>
- XP: <span id="xp">0</span>/100
+<div id="hud">
+ <div class="panel">
+  <b>⚔ MINO</b> · المستوى <span id="level">1</span>
+  <div class="bar"><div class="fill" id="health"></div></div>
+  <small>❤️ <span id="hp">100</span>/100</small>
+  <div class="bar"><div class="fill" id="xp" style="width:0%"></div></div>
+  <small>⭐ XP: <span id="experience">0</span>/100</small>
+ </div>
+ <div class="panel">
+  🪙 <span id="gold">30</span><br>
+  <small>🌲 غابة الظلال</small>
+ </div>
 </div>
 
-<div id="notice">Explore the world!</div>
-<div id="talk"></div>
+<div id="title">MINO RPG ADVENTURE</div>
+<div id="message">استكشف العالم، اهزم الوحوش واجمع الذهب!</div>
 
-<div class="controls">
-<button class="up" data-key="up">▲</button>
-<button class="left" data-key="left">◀</button>
-<button class="right" data-key="right">▶</button>
-<button class="down" data-key="down">▼</button>
-</div>
-<div class="actions">
-<button id="attackBtn">⚔<br>ATTACK</button>
-<button id="talkBtn">💬<br>TALK</button>
+<div id="controls">
+ <div class="pad">
+  <span></span><button data-key="ArrowUp">▲</button><span></span>
+  <button data-key="ArrowLeft">◀</button>
+  <button data-key="ArrowDown">▼</button>
+  <button data-key="ArrowRight">▶</button>
+ </div>
+ <div class="actions">
+  <button class="action" id="heal">💚<br>شفاء</button>
+  <button class="action" id="attack">⚔<br>هجوم</button>
+ </div>
 </div>
 
 <script>
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d");
-const W=1800,H=1400,T=48;
-
+let W,H;
 function resize(){
- canvas.width=innerWidth*devicePixelRatio;
- canvas.height=(innerHeight-48)*devicePixelRatio;
+ W=canvas.width=innerWidth*devicePixelRatio;
+ H=canvas.height=innerHeight*devicePixelRatio;
  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+ W=innerWidth;H=innerHeight;
 }
 resize();addEventListener("resize",resize);
 
-const player={x:350,y:350,hp:100,max:100,level:1,xp:0,gold:30,weapon:20};
-let keys={},camera={x:0,y:0},messageTimer=0;
-let message="Welcome to Green Valley!";
-let worldEnemies=[
- {x:650,y:350,hp:35,max:35,name:"Forest Slime",emoji:"🟢",damage:7},
- {x:950,y:650,hp:55,max:55,name:"Wild Goblin",emoji:"👹",damage:11},
- {x:1400,y:450,hp:90,max:90,name:"Dark Knight",emoji:"💀",damage:16},
- {x:1400,y:1100,hp:180,max:180,name:"Shadow Lord",emoji:"👑",damage:23}
+const saved=JSON.parse(localStorage.getItem("minoSave")||"null");
+const player={
+ x:saved?.x??500,y:saved?.y??450,
+ hp:saved?.hp??100,maxHp:100,
+ level:saved?.level??1,
+ xp:saved?.xp??0,gold:saved?.gold??30,
+ attack:25
+};
+let keys={};
+let message="استكشف العالم، اهزم الوحوش واجمع الذهب!";
+let messageTime=0;
+
+const enemies=[
+ {x:720,y:430,hp:50,max:50,name:"Slime",color:"#80e65a",alive:true},
+ {x:900,y:650,hp:75,max:75,name:"Goblin",color:"#b9a34b",alive:true},
+ {x:350,y:850,hp:120,max:120,name:"Dark Knight",color:"#9c73d7",alive:true},
+ {x:1200,y:950,hp:200,max:200,name:"Shadow Lord",color:"#e34b4b",alive:true}
 ];
-const villagers=[
- {x:300,y:550,name:"Elder",emoji:"🧙",talk:"Welcome, Mino! Defeat the monsters and protect our village."},
- {x:480,y:750,name:"Merchant",emoji:"🧔",talk:"I sell powerful equipment. Bring me 50 gold for a stronger sword!"},
- {x:1050,y:1050,name:"Guard",emoji:"🛡️",talk:"The Shadow Lord waits in the southern castle. Be prepared!"}
-];
+
 const trees=[];
-for(let i=0;i<90;i++){
- let x=60+Math.random()*1650,y=60+Math.random()*1280;
- if(Math.hypot(x-350,y-350)>120)trees.push({x,y});
+for(let i=0;i<65;i++){
+ trees.push({x:Math.random()*1800,y:Math.random()*1400});
 }
 const houses=[
- {x:180,y:470,w:115,h:95},
- {x:390,y:650,w:115,h:95},
- {x:250,y:880,w:130,h:100}
+ {x:220,y:220,w:115,h:90},
+ {x:410,y:240,w:110,h:85},
+ {x:300,y:390,w:130,h:90}
 ];
 
-function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
-function text(t,x,y,size=14,color="white"){
- ctx.fillStyle=color;ctx.font=`bold ${size}px Arial`;ctx.fillText(t,x,y);
-}
-
-function drawWorld(){
- rect(0,0,W,H,"#477d43");
-
- // Grass pattern
- for(let y=0;y<H;y+=T){
-  for(let x=0;x<W;x+=T){
-   if((x/T+y/T)%3===0)rect(x+8,y+9,4,4,"#57934c");
-  }
- }
-
- // Roads
- rect(0,495,650,75,"#b99a65");
- rect(500,495,65,550,"#b99a65");
- rect(500,1000,1000,65,"#b99a65");
- rect(1000,500,65,530,"#b99a65");
-
- // River
- rect(1170,0,100,400,"#328ab5");
- rect(1270,300,530,80,"#328ab5");
-
- // Castle
- rect(1350,1000,330,250,"#646b7c");
- rect(1390,950,70,100,"#7d879b");
- rect(1570,950,70,100,"#7d879b");
- rect(1460,1080,100,170,"#343b51");
- text("DARK CASTLE",1400,1270,19,"#ffe08a");
-
- // Houses
- houses.forEach(h=>{
-  rect(h.x,h.y,h.w,h.h,"#bd8651");
-  rect(h.x-10,h.y-18,h.w+20,28,"#873c36");
-  rect(h.x+45,h.y+45,27,50,"#51332b");
-  rect(h.x+12,h.y+32,22,22,"#a8dcdf");
- });
-
- // Trees
- trees.forEach(t=>{
-  rect(t.x-8,t.y+12,16,25,"#68442b");
-  ctx.fillStyle="#245d37";ctx.beginPath();
-  ctx.arc(t.x,t.y,25,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#39844a";ctx.beginPath();
-  ctx.arc(t.x-8,t.y-8,15,0,Math.PI*2);ctx.fill();
- });
-
- // NPCs
- villagers.forEach(v=>drawCharacter(v.x,v.y,v.emoji,"#e9c46a",v.name));
-
- // Enemies
- worldEnemies.forEach(e=>{
-  if(e.hp>0){
-   drawCharacter(e.x,e.y,e.emoji,"#a63b4d",e.name);
-   rect(e.x-20,e.y-35,40,5,"#333");
-   rect(e.x-20,e.y-35,40*e.hp/e.max,5,"#e54c62");
-  }
- });
-}
-
-function drawCharacter(x,y,emoji,color,name){
- rect(x-11,y+8,22,9,"#26332a");
- ctx.font="30px Arial";ctx.textAlign="center";
- ctx.fillText(emoji,x,y+5);
- ctx.textAlign="left";
- text(name,x-25,y-25,10,"#fff3c4");
-}
-
-function drawPlayer(){
- // Shadow
- rect(player.x-12,player.y+12,24,8,"#243329");
- // Body
- rect(player.x-9,player.y-18,18,25,"#315eae");
- rect(player.x-8,player.y-29,16,13,"#e5b58b");
- rect(player.x-11,player.y-32,22,7,"#b8c7d9");
- rect(player.x-7,player.y+7,6,12,"#303c58");
- rect(player.x+2,player.y+7,6,12,"#303c58");
- rect(player.x+10,player.y-10,5,18,"#c6cbd6");
-}
-
-function render(){
- const vw=innerWidth,vh=innerHeight-48;
- camera.x=Math.max(0,Math.min(W-vw,player.x-vw/2));
- camera.y=Math.max(0,Math.min(H-vh,player.y-vh/2));
- ctx.clearRect(0,0,vw,vh);
- ctx.save();ctx.translate(-camera.x,-camera.y);
- drawWorld();drawPlayer();
- ctx.restore();
- requestAnimationFrame(render);
-}
-
-function move(){
- let dx=0,dy=0;
- if(keys.left)dx--;
- if(keys.right)dx++;
- if(keys.up)dy--;
- if(keys.down)dy++;
- if(dx||dy){
-  const length=Math.hypot(dx,dy);
-  let nx=player.x+dx/length*3;
-  let ny=player.y+dy/length*3;
-  if(nx>25&&nx<W-25)player.x=nx;
-  if(ny>25&&ny<H-25)player.y=ny;
- }
- checkZone();
-}
-function checkZone(){
- let zone="Green Valley";
- if(player.x>1100)zone="Riverlands";
- if(player.y>900)zone="Dark Castle";
- if(player.x<250&&player.y<250)zone="Forest Edge";
- document.getElementById("location").textContent=zone;
-}
-
-function nearest(list){
- return list.filter(o=>o.hp===undefined||o.hp>0)
- .map(o=>({...o,d:Math.hypot(player.x-o.x,player.y-o.y)}))
- .sort((a,b)=>a.d-b.d)[0];
-}
-
-function attack(){
- let e=nearest(worldEnemies);
- if(!e||e.d>75){notify("No enemy nearby!");return;}
- let target=worldEnemies.find(x=>x.x===e.x&&x.y===e.y);
- target.hp=Math.max(0,target.hp-player.weapon);
- notify("⚔ You attacked "+target.name+"!");
- if(target.hp===0){
-  player.xp+=35;player.gold+=15;
-  notify("🏆 Monster defeated! +35 XP and 15 gold!");
-  if(player.xp>=100){
-   player.xp-=100;player.level++;
-   player.max+=15;player.hp=player.max;
-   player.weapon+=5;
-   notify("⭐ LEVEL UP! New attack power!");
-  }
-  updateHUD();save();
- }else{
-  player.hp=Math.max(0,player.hp-target.damage);
-  if(player.hp===0){
-   player.hp=1;
-   notify("💫 You are exhausted! Find the village elder.");
-  }
-  updateHUD();save();
- }
-}
-
-function talk(){
- let v=nearest(villagers);
- if(!v||v.d>90){notify("Come closer to a character.");return;}
- let npc=villagers.find(x=>x.x===v.x&&x.y===v.y);
- let msg=npc.talk;
- if(npc.name==="Merchant"){
-  if(player.gold>=50){
-   msg="You bought a stronger sword! Attack +10.";
-   player.gold-=50;player.weapon+=10;
-   updateHUD();save();
-  }else msg="You need 50 gold for my sword. Hunt monsters!";
- }
- document.getElementById("talk").textContent=npc.name+": "+msg;
- document.getElementById("talk").style.display="block";
- setTimeout(()=>document.getElementById("talk").style.display="none",4500);
-}
-
-function notify(s){
- message=s;
- document.getElementById("notice").textContent=s;
-}
-function updateHUD(){
- document.getElementById("health").textContent=player.hp;
- document.getElementById("hp").style.width=player.hp/player.max*100+"%";
- document.getElementById("level").textContent=player.level;
- document.getElementById("gold").textContent=player.gold;
- document.getElementById("xp").textContent=player.xp;
- document.getElementById("attack").textContent=player.weapon;
+function say(t){
+ message=t;messageTime=220;
+ document.getElementById("message").textContent=t;
 }
 function save(){
- localStorage.setItem("minoWorldSave",JSON.stringify({player,enemies:worldEnemies}));
+ localStorage.setItem("minoSave",JSON.stringify({
+ ...player
+ }));
 }
-function load(){
- try{
-  let s=JSON.parse(localStorage.getItem("minoWorldSave"));
-  if(s){Object.assign(player,s.player);worldEnemies=s.enemies;}
- }catch(e){}
- updateHUD();
+function updateHUD(){
+ document.getElementById("hp").textContent=player.hp;
+ document.getElementById("level").textContent=player.level;
+ document.getElementById("gold").textContent=player.gold;
+ document.getElementById("experience").textContent=player.xp;
+ document.getElementById("health").style.width=(player.hp/player.maxHp*100)+"%";
+ document.getElementById("xp").style.width=player.xp+"%";
 }
-function loop(){
- move();
- setTimeout(loop,16);
-}
+function drawWorld(camX,camY){
+ ctx.fillStyle="#315f3b";ctx.fillRect(0,0,W,H);
 
-document.addEventListener("keydown",e=>{
- const k=e.key.toLowerCase();
- if(["arrowup","w"].includes(k))keys.up=true;
- if(["arrowdown","s"].includes(k))keys.down=true;
- if(["arrowleft","a"].includes(k))keys.left=true;
- if(["arrowright","d"].includes(k))keys.right=true;
- if(k===" "||k==="j")attack();
- if(k==="e")talk();
-});
-document.addEventListener("keyup",e=>{
- const k=e.key.toLowerCase();
- if(["arrowup","w"].includes(k))keys.up=false;
- if(["arrowdown","s"].includes(k))keys.down=false;
- if(["arrowleft","a"].includes(k))keys.left=false;
- if(["arrowright","d"].includes(k))keys.right=false;
-});
-document.querySelectorAll("[data-key]").forEach(btn=>{
- const k=btn.dataset.key;
- btn.addEventListener("pointerdown",e=>{e.preventDefault();keys[k]=true;});
+ // العشب
+ for(let x=0;x<1900;x+=80)
+ for(let y=0;y<1500;y+=80){
+  ctx.fillStyle=((x+y)/80)%2?"#356b40":"#386f42";
+  ctx.fillRect(x-camX,y-camY,80,80);
+ }
+ // الطريق
+ ctx.fillStyle="#a58b5b";
+ ctx.fillRect(0-camX,285-camY,1500,65);
+ ctx.fillRect(350-camX,0-camY,65,1200);
+ // النهر
+ ctx.fillStyle="#287fa0";
+ ctx.fillRect(1050-camX,0-camY,95,1400);
+ ctx.strokeStyle="#7bd3e9";ctx.lineWidth=3;
+ for(let y=0;y<1400;y+=50){
+  ctx.beginPath();ctx.moveTo(1060-camX,y-camY);
+  ctx.lineTo(1130-camX,y+20-camY);ctx.stroke();
+ }
+ // الأشجار
+ trees.forEach(t=>{
+  ctx.fillStyle="#50391f";
+  ctx.fillRect(t.x-camX-5,t.y-camY,10,24);
+  ctx.fillStyle="#164b2b";
+  ctx.beginPath();ctx.arc(t.x-camX,t.y-camY,22,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#287044";
+  ctx.beginPath();ctx.arc(t.x-camX-8,t.y-camY-9,13,0,Math.PI*2);ctx.fill();
+ });
+ // المنازل
+ houses.forEach(h=>{
+  ctx.fillStyle="#c2a16b";
+  ctx.fillRect(h.x-camX,h.y-camY,h.w,h.h);
+  ctx.fillStyle="#75412c";
+  ctx.beginPath();
+  ctx.moveTo(h.x-camX-10,h.y-camY);
+  ctx.lineTo(h.x-camX+h.w/2,h.y-camY-55);
+  ctx.lineTo(h.x-camX+h.w+10,h.y-camY);
+  ctx.fill();
+  ctx.fillStyle="#51311e";
+  ctx.fillRect(h.x-camX+45,h.y-camY+42,23,48);
+ });
+ // علامة القرية
+ ctx.fillStyle="#f4d47b";
+ ctx.font="bold 18px Arial";
+ ctx.fillText("HERNAND VILLAGE",220-camX,180-camY);
+}
+function drawCharacter(x,y,color,label,camX,camY){
+ ctx.fillStyle="#0006";
+ ctx.beginPath();ctx.ellipse(x-camX,y-camY+14,15,7,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=color;
+ ctx.fillRect(x-camX-10,y-camY-12,20,27);
+ ctx.fillStyle="#f0c79b";
+ ctx.beginPath();ctx.arc(x-camX,y-camY-20,10,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#fff";
+ ctx.font="11px Arial";ctx.textAlign="center";
+ ctx.fillText(label,x-camX,y-camY-36);
+ ctx.textAlign="left";
+}
+function draw(){
+ const camX=Math.max(0,Math.min(1800-W,player.x-W/2));
+ const camY=Math.max(0,Math.min(1400-H,player.y-H/2));
+ drawWorld(camX,camY);
+ enemies.forEach(e=>{
+  if(!e.alive)return;
+  drawCharacter(e.x,e.y,e.color,e.name,camX,camY);
+  ctx.fillStyle="#222";ctx.fillRect(e.x-camX-17,e.y-camY-47,34,5);
+  ctx.fillStyle="#e34b4b";ctx.fillRect(e.x-camX-17,e.y-camY-47,34*e.hp/e.max,5);
+ });
+ drawCharacter(player.x,player.y,"#e7b84b","MINO",camX,camY);
+}
+function move(){
+ let dx=0,dy=0;
+ if(keys.ArrowUp||keys.w)dy--;
+ if(keys.ArrowDown||keys.s)dy++;
+ if(keys.ArrowLeft||keys.a)dx--;
+ if(keys.ArrowRight||keys.d)dx++;
+ if(dx||dy){
+  const length=Math.hypot(dx,dy);
+  player.x+=dx/length*3;
+  player.y+=dy/length*3;
+ }
+ player.x=Math.max(20,Math.min(1780,player.x));
+ player.y=Math.max(20,Math.min(1380,player.y));
+}
+function attack(){
+ let target=null,dist=Infinity;
+ enemies.forEach(e=>{
+  if(!e.alive)return;
+  const d=Math.hypot(e.x-player.x,e.y-player.y);
+  if(d<dist){dist=d;target=e;}
+ });
+ if(!target||dist>85){say("اقترب من الوحش أولاً!");return;}
+ target.hp-=player.attack;
+ if(target.hp<=0){
+  target.alive=false;
+  player.gold+=15;
+  player.xp+=40;
+  say("انتصرت! حصلت على 15 ذهباً و40 XP");
+  if(player.xp>=100){
+   player.xp-=100;player.level++;
+   player.maxHp+=20;player.hp=player.maxHp;
+   player.attack+=8;say("🎉 ارتقيت إلى المستوى "+player.level);
+  }
+ }else say("ضربة ناجحة! تبقى للعدو "+target.hp+" صحة");
+ updateHUD();save();
+}
+function heal(){
+ if(player.gold<10){say("تحتاج إلى 10 ذهب لشراء العلاج!");return;}
+ player.gold-=10;
+ player.hp=Math.min(player.maxHp,player.hp+35);
+ say("استعدت 35 نقطة صحة");
+ updateHUD();save();
+}
+document.getElementById("attack").onclick=attack;
+document.getElementById("heal").onclick=heal;
+document.addEventListener("keydown",e=>{keys[e.key]=true;if(e.key===" ")attack();});
+document.addEventListener("keyup",e=>keys[e.key]=false);
+document.querySelectorAll("[data-key]").forEach(b=>{
+ const k=b.dataset.key;
+ b.addEventListener("pointerdown",e=>{e.preventDefault();keys[k]=true;});
  ["pointerup","pointerleave","pointercancel"].forEach(ev=>
- btn.addEventListener(ev,()=>keys[k]=false));
+ b.addEventListener(ev,()=>keys[k]=false));
 });
-document.getElementById("attackBtn").onclick=attack;
-document.getElementById("talkBtn").onclick=talk;
-
-load();render();loop();
+function loop(){
+ move();draw();updateHUD();
+ if(messageTime>0)messageTime--;
+ save();
+ requestAnimationFrame(loop);
+}
+updateHUD();loop();
 </script>
 </body>
 </html>
