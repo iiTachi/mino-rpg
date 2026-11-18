@@ -100,7 +100,8 @@ button:disabled{opacity:.4;cursor:not-allowed}
 const enemies = [
   {name:"Dark Knight", hp:60, damage:10, xp:60},
   {name:"Shadow Beast", hp:90, damage:15, xp:90},
-  {name:"Dark Lord", hp:150, damage:20, xp:150}
+  {name:"Dark Lord", hp:150, damage:20, xp:150},
+    {name:"Night Warden", hp:200, damage:25, xp:200}
 ];
 
 const SAVE_KEY = "mino_rpg_save_v3";
@@ -227,8 +228,7 @@ function attack(){
 
     if(state.stage === enemies.length-1){
       state.finished = true;
-      message("🏆 Defeated Dark Lord! You Win! Progress saved.");
-    }else{
+      message("🏆 Defeated Night Warden! You Win! Progress saved.");
       const defeated = enemy.name;
       state.stage++;
       state.enemyHP = currentEnemy().hp;
