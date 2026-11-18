@@ -4,245 +4,289 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MINO RPG ADVENTURE</title>
+<title>MINO RPG Adventure</title>
 <style>
-* { box-sizing: border-box; }
-
-body {
-    background: #111827;
-    color: white;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px;
+*{box-sizing:border-box}
+body{
+  margin:0;padding:20px;
+  background:linear-gradient(135deg,#101827,#24152f);
+  color:#fff;font-family:Arial,sans-serif;
+  text-align:center;min-height:100vh;
 }
-
-.container {
-    max-width: 550px;
-    margin: auto;
-    background: #1f2937;
-    padding: 22px;
-    border-radius: 16px;
-    border: 2px solid #374151;
+.game{
+  max-width:520px;margin:25px auto;
+  padding:24px;background:#202b3d;
+  border:2px solid #d6a84b;border-radius:18px;
+  box-shadow:0 10px 35px #0008;
 }
-
-h1 { color: orange; }
-
-h2 { color: #facc15; }
-
-.stats {
-    background: #111827;
-    padding: 12px;
-    border-radius: 10px;
-    margin: 12px 0;
+h1{color:#f4c65e;margin-top:5px}
+h2{color:#ffcf70}
+.stats,.enemy{
+  background:#111a29;padding:15px;
+  border-radius:12px;margin:12px 0;
 }
-
-.bar {
-    background: #374151;
-    height: 15px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 8px 0 14px;
+.statline{
+  display:flex;justify-content:space-between;
+  margin:9px 0;gap:10px;
 }
-
-.fill {
-    height: 100%;
-    width: 100%;
-    transition: width 0.3s;
+.bar{
+  height:13px;background:#4b2630;
+  border-radius:10px;overflow:hidden;margin-top:7px;
 }
-
-.player-fill { background: #22c55e; }
-.enemy-fill { background: #ef4444; }
-
-button {
-    background: orange;
-    color: #111827;
-    border: none;
-    padding: 13px 20px;
-    margin: 7px;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
+.fill{
+  height:100%;width:100%;
+  background:#36c878;transition:width .25s;
 }
-
-button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+.enemy .fill{background:#e34c4c}
+button{
+  border:0;border-radius:10px;
+  padding:13px 18px;margin:6px;
+  font-size:16px;font-weight:bold;
+  cursor:pointer;color:white;
+  background:#b77b24;
 }
-
-#message {
-    min-height: 48px;
-    color: #facc15;
-    font-weight: bold;
-    margin: 18px 0;
+button:disabled{opacity:.4;cursor:not-allowed}
+.attack{background:#c03939}
+.heal{background:#218c59}
+.new{background:#596579}
+#message{
+  min-height:55px;padding:12px;
+  color:#f4d27c;line-height:1.5;
 }
-
-.small {
-    color: #9ca3af;
-    font-size: 14px;
-}
+.small{color:#b9c4d4;font-size:13px}
 </style>
 </head>
-
 <body>
-<div class="container">
 
-<h1>⚔️ MINO RPG ADVENTURE</h1>
-<p class="small">Fight your way through the Dark Kingdom!</p>
+<div class="game">
+  <h1>⚔️ MINO RPG Adventure</h1>
+  <p class="small">Your adventure is automatically saved.</p>
 
-<div class="stats">
-    <h2>🛡️ Player</h2>
-    <p>Health: <span id="health">100</span> / 100</p>
-    <div class="bar">
-        <div id="playerBar" class="fill player-fill"></div>
+  <div class="stats">
+    <h2>Kingdom Player</h2>
+    <div class="statline">
+      <span>❤️ Health</span><strong id="playerHP">100</strong>
     </div>
-    <p>Level: <span id="level">1</span></p>
-    <p>XP: <span id="xp">0</span> / 100</p>
-</div>
+    <div class="bar"><div class="fill" id="playerBar"></div></div>
+    <div class="statline">
+      <span>⭐ Level</span><strong id="level">1</strong>
+    </div>
+    <div class="statline">
+      <span>✨ XP</span><strong id="xp">0</strong>
+    </div>
+  </div>
 
-<div class="stats">
+  <div class="enemy">
     <h2 id="enemyName">Dark Knight</h2>
-    <p>Stage: <span id="stage">1</span> / 3</p>
-    <p>Enemy Health: <span id="enemyHealth">60</span></p>
-    <div class="bar">
-        <div id="enemyBar" class="fill enemy-fill"></div>
+    <div class="statline">
+      <span>Enemy Health</span><strong id="enemyHP">60</strong>
     </div>
-</div>
+    <div class="bar"><div class="fill" id="enemyBar"></div></div>
+  </div>
 
-<p id="message">Welcome Warrior! Prepare for battle.</p>
+  <div id="message">Welcome! Prepare for battle.</div>
 
-<button id="attackBtn" onclick="attack()">ATTACK ⚔️</button>
-<button id="healBtn" onclick="heal()">HEAL ❤️</button>
-<button onclick="restartGame()">RESTART 🔄</button>
+  <button id="startBtn" onclick="startGame()">Start / Continue</button>
+  <br>
+  <button class="attack" id="attackBtn" onclick="attack()">⚔️ Attack</button>
+  <button class="heal" id="healBtn" onclick="heal()">❤️ Heal</button>
+  <br>
+  <button class="new" onclick="newGame()">New Game</button>
 
-<p class="small">Defeat all enemies and become the hero of the kingdom!</p>
-
+  <p class="small" id="saveStatus">Checking saved progress...</p>
 </div>
 
 <script>
-let health = 100;
-let maxHealth = 100;
-let xp = 0;
-let level = 1;
-let stage = 0;
-let gameOver = false;
-
 const enemies = [
-    { name: "Dark Knight", health: 60, damage: 10, xp: 40 },
-    { name: "Shadow Beast", health: 90, damage: 15, xp: 60 },
-    { name: "DARK LORD 👑", health: 150, damage: 20, xp: 100 }
+  {name:"Dark Knight", hp:60, damage:10, xp:60},
+  {name:"Shadow Beast", hp:90, damage:15, xp:90},
+  {name:"Dark Lord", hp:150, damage:20, xp:150}
 ];
 
-let enemyHealth = enemies[0].health;
+const SAVE_KEY = "mino_rpg_save_v3";
 
-function updateScreen() {
-    const enemy = enemies[stage];
+function freshState(){
+  return {
+    playerHP:100,
+    maxHP:100,
+    level:1,
+    xp:0,
+    stage:0,
+    enemyHP:60,
+    started:false,
+    finished:false,
+    gameOver:false
+  };
+}
 
-    document.getElementById("health").textContent = health;
-    document.getElementById("level").textContent = level;
-    document.getElementById("xp").textContent = xp;
-    document.getElementById("stage").textContent = stage + 1;
+let state = loadGame();
+
+function loadGame(){
+  try{
+    const saved = localStorage.getItem(SAVE_KEY);
+    if(!saved) return freshState();
+
+    const data = JSON.parse(saved);
+    const base = freshState();
+    const merged = {...base,...data};
+
+    if(
+      !Number.isFinite(merged.playerHP) ||
+      !Number.isFinite(merged.enemyHP) ||
+      !Number.isInteger(merged.stage) ||
+      merged.stage < 0 || merged.stage >= enemies.length
+    ){
+      return freshState();
+    }
+    return merged;
+  }catch(error){
+    return freshState();
+  }
+}
+
+function saveGame(){
+  try{
+    localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+    document.getElementById("saveStatus").textContent =
+      "✓ Progress saved automatically";
+  }catch(error){
+    document.getElementById("saveStatus").textContent =
+      "Save unavailable in this browser";
+  }
+}
+
+function currentEnemy(){
+  return enemies[state.stage];
+}
+
+function updateScreen(){
+  document.getElementById("playerHP").textContent =
+    state.playerHP + " / " + state.maxHP;
+  document.getElementById("playerBar").style.width =
+    Math.max(0,state.playerHP/state.maxHP*100) + "%";
+
+  document.getElementById("level").textContent = state.level;
+  document.getElementById("xp").textContent = state.xp;
+
+  if(state.finished){
+    document.getElementById("enemyName").textContent = "Victory!";
+    document.getElementById("enemyHP").textContent = "0";
+    document.getElementById("enemyBar").style.width = "0%";
+  }else{
+    const enemy = currentEnemy();
     document.getElementById("enemyName").textContent = enemy.name;
-    document.getElementById("enemyHealth").textContent = enemyHealth;
-
-    document.getElementById("playerBar").style.width =
-        (health / maxHealth * 100) + "%";
-
+    document.getElementById("enemyHP").textContent =
+      state.enemyHP + " / " + enemy.hp;
     document.getElementById("enemyBar").style.width =
-        (enemyHealth / enemy.health * 100) + "%";
+      Math.max(0,state.enemyHP/enemy.hp*100) + "%";
+  }
 
-    document.getElementById("attackBtn").disabled = gameOver;
-    document.getElementById("healBtn").disabled = gameOver;
+  const canFight = state.started && !state.finished && !state.gameOver;
+  document.getElementById("attackBtn").disabled = !canFight;
+  document.getElementById("healBtn").disabled =
+    !canFight || state.playerHP >= state.maxHP;
+  document.getElementById("startBtn").textContent =
+    state.started ? "Continue" : "Start / Continue";
 }
 
-function gainXP(amount) {
-    xp += amount;
-
-    while (xp >= 100) {
-        xp -= 100;
-        level++;
-        maxHealth += 20;
-        health = Math.min(maxHealth, health + 30);
-
-        document.getElementById("message").textContent =
-            "LEVEL UP! You reached level " + level + "!";
-    }
+function message(text){
+  document.getElementById("message").textContent = text;
 }
 
-function attack() {
-    if (gameOver) return;
-
-    const enemy = enemies[stage];
-    const damage = 20 + (level - 1) * 5;
-
-    enemyHealth = Math.max(0, enemyHealth - damage);
-
-    if (enemyHealth === 0) {
-        gainXP(enemy.xp);
-
-        if (stage === enemies.length - 1) {
-            gameOver = true;
-            document.getElementById("message").textContent =
-                "🏆 YOU DEFEATED THE DARK LORD! YOU WIN!";
-        } else {
-            document.getElementById("message").textContent =
-                "Enemy defeated! +" + enemy.xp + " XP. Next stage!";
-            stage++;
-            enemyHealth = enemies[stage].health;
-        }
-
-        updateScreen();
-        return;
-    }
-
-    health = Math.max(0, health - enemy.damage);
-
-    if (health === 0) {
-        gameOver = true;
-        document.getElementById("message").textContent =
-            "💀 GAME OVER! Press RESTART to try again.";
-    } else {
-        document.getElementById("message").textContent =
-            "You dealt " + damage + " damage! The enemy attacked for " +
-            enemy.damage + " damage.";
-    }
-
-    updateScreen();
+function startGame(){
+  if(state.finished){
+    message("You have already completed the adventure. Start a New Game to play again.");
+    return;
+  }
+  if(state.gameOver){
+    message("Your hero has fallen. Start a New Game to try again.");
+    return;
+  }
+  state.started = true;
+  saveGame();
+  updateScreen();
+  message("Battle resumed! Your progress is safe.");
 }
 
-function heal() {
-    if (gameOver) return;
+function attack(){
+  if(!state.started || state.finished || state.gameOver) return;
 
-    const oldHealth = health;
-    health = Math.min(maxHealth, health + 20);
+  const enemy = currentEnemy();
+  const damage = 20 + (state.level - 1) * 5;
+  state.enemyHP = Math.max(0,state.enemyHP-damage);
 
-    if (health === oldHealth) {
-        document.getElementById("message").textContent =
-            "Your health is already full!";
-    } else {
-        document.getElementById("message").textContent =
-            "❤️ You restored " + (health - oldHealth) + " health!";
+  if(state.enemyHP <= 0){
+    state.xp += enemy.xp;
+
+    while(state.xp >= 100){
+      state.xp -= 100;
+      state.level++;
+      state.maxHP += 20;
+      state.playerHP = Math.min(state.maxHP,state.playerHP+30);
     }
 
-    updateScreen();
+    if(state.stage === enemies.length-1){
+      state.finished = true;
+      message("🏆 Defeated Dark Lord! You Win! Progress saved.");
+    }else{
+      const defeated = enemy.name;
+      state.stage++;
+      state.enemyHP = currentEnemy().hp;
+      message("Victory! " + defeated + " defeated. Next enemy: " + currentEnemy().name);
+    }
+  }else{
+    state.playerHP = Math.max(0,state.playerHP-enemy.damage);
+
+    if(state.playerHP <= 0){
+      state.gameOver = true;
+      message("You have been defeated! Your progress is saved.");
+    }else{
+      message("You dealt " + damage + " damage. " +
+        enemy.name + " attacked for " + enemy.damage + " damage.");
+    }
+  }
+
+  saveGame();
+  updateScreen();
 }
 
-function restartGame() {
-    health = 100;
-    maxHealth = 100;
-    xp = 0;
-    level = 1;
-    stage = 0;
-    gameOver = false;
-    enemyHealth = enemies[0].health;
+function heal(){
+  if(!state.started || state.finished || state.gameOver) return;
 
-    document.getElementById("message").textContent =
-        "Welcome back, Warrior! The battle begins!";
+  if(state.playerHP >= state.maxHP){
+    message("Your health is already full.");
+    return;
+  }
 
-    updateScreen();
+  const restored = Math.min(20,state.maxHP-state.playerHP);
+  state.playerHP += restored;
+  saveGame();
+  updateScreen();
+  message("❤️ You restored " + restored + " health. Progress saved.");
+}
+
+function newGame(){
+  if(!confirm("Start a completely new game? This will erase your saved progress.")){
+    return;
+  }
+  state = freshState();
+  saveGame();
+  updateScreen();
+  message("Welcome, hero! Your new adventure is ready.");
 }
 
 updateScreen();
+
+if(state.finished){
+  message("🏆 You have already won! Your completed game is saved.");
+}else if(state.gameOver){
+  message("Your saved game is over. Choose New Game to restart.");
+}else if(state.started){
+  message("Welcome back! Your previous battle has been restored.");
+}else{
+  message("Welcome! Press Start to begin your adventure.");
+}
 </script>
+
 </body>
 </html>
