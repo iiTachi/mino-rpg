@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MINO RPG</title>
+<style>
+body {
+    background: #111827;
+    color: white;
+    font-family: Arial;
+    text-align: center;
+    padding: 25px;
+}
+h1 { color: orange; }
+button {
+    background: orange;
+    padding: 15px 25px;
+    border: none;
+    border-radius: 10px;
+    margin: 10px;
+    font-size: 18px;
+}
+</style>
+</head>
+<body>
+<h1>MINO RPG ADVENTURE</h1>
+<h2 id="enemy">Dark Knight</h2>
+<p>Player Health: <span id="health">100</span></p>
+<p>Enemy Health: <span id="enemyHealth">100</span></p>
+<p id="message">Welcome Warrior!</p>
+<button onclick="attack()">ATTACK ⚔️</button>
+<button onclick="heal()">HEAL ❤️</button>
+<script>
+let health = 100;
+let enemyHealth = 100;
+function attack() {
+    enemyHealth -= 20;
+    if (enemyHealth < 0) enemyHealth = 0;
+    document.getElementById("enemyHealth").textContent = enemyHealth;
+    if (enemyHealth === 0) {
+        document.getElementById("message").textContent = "YOU WIN! 🏆";
+        return;
+    }
+    health -= 10;
+    document.getElementById("health").textContent = health;
+    document.getElementById("message").textContent = "The enemy attacks!";
+}
+function heal() {
+    health = Math.min(100, health + 20);
+    document.getElementById("health").textContent = health;
+    document.getElementById("message").textContent = "You healed!";
+}
+</script>
+</body>
+</html>
